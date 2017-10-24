@@ -3,43 +3,36 @@
 # from flask import g # flask.g => flask application object for store information
 
 import json
+from pymongo import MongoClient
 
-print(__name__)
-
-mydict = dict(
-	SECRET_KEY='development key',
-	USERNAME='admin',
-	PASSWORD='default'
-)
-
-def connect_db():
-  """Connects to the specific database."""
-  # rv = sqlite3.connect(current_app.config['DATABASE'])
-  # rv.row_factory = sqlite3.Row
-  # return rv
-  return "OK"
-
-def get_db():
-	"""Opens a new database connection if there is none yet for the
-	current application context.
-	"""
-	if not 'sqlite_db' in mydict:
-		mydict['sqlite_db'] = connect_db()
-	return mydict['sqlite_db']
+# mydict = dict(
+# 	SECRET_KEY='development key',
+# 	USERNAME='admin',
+# 	PASSWORD='default'
+# )
 
 def js_r(filename):
+	''' Deserialize JSON from file to dict object '''
 	with open(filename) as f_in:
 		return(json.load(f_in)) # deserialize JSON to dict object
 
-print(mydict)
+def js_w(filename):
+	''' Serialize dict to JSON file '''
+	with open(filename, 'w') as f_out:
+		json.dump(my_data, f_out, ensure_ascii=False)
+		return 'write file successed !!'
 
-print(mydict['USERNAME'])
+def get_Conn():
+	''' connects to mLab '''
+	conf = js_r('config.json')
+	connStr = 'mongodb://' + conf['mgUser'] + ':' + conf['mgPwd'] + '@' + conf['mgUri']
+	client = MongoClient(connStr)
+	if hasattr(client, 'welendb'):
+		return client.welendb
 
-print(get_db())
+# main program entry
+if __name__ == "__main__":
+	db = get_Conn()
+	tradings = db.tradings # same =>  db['tradings']
+	print('total data count is ' + str(tradings.count()))
 
-print(mydict)
-
-my_data = js_r('config.json')
-print(my_data)
-
-print(my_data['username'])

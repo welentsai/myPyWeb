@@ -1,4 +1,5 @@
 {
-	"username": "welen",
-	"password": "test"
+	"mgUser": "welen",
+	"mgPwd": "welen88",
+	"mgUri": "ds064198.mlab.com:64198/welendb"
 }
