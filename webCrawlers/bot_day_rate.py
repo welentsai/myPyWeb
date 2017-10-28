@@ -7,6 +7,13 @@ import requests
 from bs4 import Tag
 from bs4 import BeautifulSoup
 
+
+def toFloat(s):
+	try:
+		return float(s)
+	except ValueError: # 處理非數字
+		return float('nan') # nan for "not a number"
+
 # 台銀牌告匯率
 result = requests.get("http://rate.bot.com.tw/xrt?Lang=zh-TW")
 
@@ -25,12 +32,12 @@ currencyList = [tag.string.strip() for tag in soup.find_all("div", "visible-phon
 #print(currencyList)
 
 #現金匯率
-rateCashList = [tag.string for tag in soup.find_all("td", "rate-content-cash")]
-#print(rateCashList)
+rateCashList = [toFloat(tag.string) for tag in soup.find_all("td", "rate-content-cash")]
+print(rateCashList)
 
 #即期匯率
-rateSightList = [tag.string for tag in soup.find_all("td", "rate-content-sight")]
-#print(rateSightList)
+rateSightList = [toFloat(tag.string) for tag in soup.find_all("td", "rate-content-sight")]
+print(rateSightList)
 
 # using for HTML5 data-* tag
 # print(soup.find_all(attrs={"data-table": "幣別"}))
