@@ -53,7 +53,7 @@ def getDataFrame(url):
 
 # 抓取 S&P500 某一年份 的交易資料
 # 用 pandas 存放 table
-def pdData(year):
+def getData(year):
 	# 讀取前200筆
 	uri = uriComposer(year, '0')
 	df1 = getDataFrame(uri)
@@ -75,11 +75,11 @@ def pdData(year):
 # main entry 
 if __name__ == "__main__":
 	# year 1970 ~ 
-	for i in range(1970, 2018):
-		df = pdData(str(i))
+	for i in range(2015, 2018):
+		df = getData(str(i))
+		# print(df.sort_values(by=['Date']))
+		print(df)
 		print("Year : " + str(i) + ", count: " + str(len(df)))
-		# df.sort_values(by=['Date'])
-		print(df.sort_values(by=['Date']))
 		print('===================')
 		time.sleep(1)   # delays for 1 seconds
 
