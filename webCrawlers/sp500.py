@@ -68,7 +68,7 @@ def getData(year):
 	df['High'] = pd.to_numeric(df.High, errors='coerce')
 	df['Low'] = pd.to_numeric(df.Low, errors='coerce')
 	df['Close'] = pd.to_numeric(df.Close, errors='coerce')
-	df['Volume'] = pd.to_numeric(df.Volume, downcast='unsigned', errors='coerce')
+	df['Volume'] = pd.to_numeric(df.Volume, downcast='integer', errors='coerce')
 
 	return df # re-index
 
