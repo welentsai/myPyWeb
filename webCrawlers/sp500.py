@@ -4,6 +4,8 @@ import requests
 from bs4 import Tag
 from bs4 import BeautifulSoup
 
+import pandas as pd
+
 import datetime
 import time
 
@@ -39,36 +41,45 @@ def getRow(trTag):
 		tdRow[5] = int(cleanNum(tdRow[5]))
 		return tdRow
 
-# 抓取 S&P500 某一年份 的交易資料
-def getData(year):
-	# 前200筆資料
-	uri = uriComposer(year, '0')
-	result = requests.get(uri)
+# 從網站上把 HTML Table 抓下來, 並轉成 pandas dataframe
+def getDataFrame(url):
+	result = requests.get(url)
 	html_doc = result.content
 	soup = BeautifulSoup(html_doc, 'lxml')
-	rowList = [getRow(tr) for tr in soup.find("table", "historical_price").find_all("tr")]
-	# print(rowList)
-	print(len(rowList))
+	table = soup.find("table", "historical_price")
+	df = pd.read_html(str(table))[0] # 1. convert BeautifulSoup object into a String , 2. get first table
+	df.columns = list(df.iloc[0]) # rename column from first row
+	return df.drop([0]) # drop first row, it is ccolumn name
 
-	time.sleep(0.5)   # delays for 1 seconds
-
+# 抓取 S&P500 某一年份 的交易資料
+# 用 pandas 存放 table
+def pdData(year):
+	# 讀取前200筆
+	uri = uriComposer(year, '0')
+	df1 = getDataFrame(uri)
+	time.sleep(0.5)   # delays for 0.5 seconds
 	# 剩下全部 (200筆之後)
 	uri = uriComposer(year, '200')
-	result = requests.get(uri)
-	html_doc = result.content
-	soup = BeautifulSoup(html_doc, 'lxml')
-	rowList2 = [getRow(tr) for tr in soup.find("table", "historical_price").find_all("tr")]
-	del(rowList2[0]) # rowList2[0] => 表頭, 已存在 rowList[0]
-	# print(rowList2)
-	print(len(rowList2))
+	df2 = getDataFrame(uri)
 
-	rowList.extend(rowList2) # 整合一整年
-	return rowList
+	df = pd.concat([df1, df2], ignore_index=True)
+	df['Date'] = pd.to_datetime(df.Date, format="%b %d, %Y")
+	df['Open'] = pd.to_numeric(df.Open, errors='coerce') # invalid parsing will be set as NaN
+	df['High'] = pd.to_numeric(df.High, errors='coerce')
+	df['Low'] = pd.to_numeric(df.Low, errors='coerce')
+	df['Close'] = pd.to_numeric(df.Close, errors='coerce')
+	df['Volume'] = pd.to_numeric(df.Volume, downcast='unsigned', errors='coerce')
 
+	return df # re-index
+
+# main entry 
 if __name__ == "__main__":
 	# year 1970 ~ 
 	for i in range(1970, 2018):
-		rowList = getData(str(i))
-		print("Year : " + str(i) + ", count: " + str(len(rowList)))
-		time.sleep(1)   # delays for 1 seconds
+		df = pdData(str(i))
+		print("Year : " + str(i) + ", count: " + str(len(df)))
+		# df.sort_values(by=['Date'])
+		print(df.sort_values(by=['Date']))
 		print('===================')
+		time.sleep(1)   # delays for 1 seconds
+
