@@ -20,7 +20,7 @@ class MyConn:
 	''' Constructor '''
 	def __init__(self):
 		if MyConn.__client__ is None:
-			mydir = os.path.dirname(os.path.abspath(__file__)) # get the path to module
+			mydir = os.path.dirname(os.path.abspath(__file__)) # get the path to current file
 			self.conf = self.js_r(os.path.join(mydir, 'config.json')) # fetch config file in module
 			self.connStr = 'mongodb://' + self.conf['mgUser'] + ':' + self.conf['mgPwd'] + '@' + self.conf['mgUri']
 			MyConn.__client__ = connect('welendb', host=self.connStr)

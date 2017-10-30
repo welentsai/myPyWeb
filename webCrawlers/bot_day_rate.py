@@ -14,45 +14,58 @@ def toFloat(s):
 	except ValueError: # 處理非數字
 		return float('nan') # nan for "not a number"
 
-# 台銀牌告匯率
-result = requests.get("http://rate.bot.com.tw/xrt?Lang=zh-TW")
+def getTwExRateList():
+	# 台銀牌告匯率
+	result = requests.get("http://rate.bot.com.tw/xrt?Lang=zh-TW")
+	#print(result.status_code)
+	#print(result.headers)
+	#print(result.content)
+	html_doc = result.content
+	soup = BeautifulSoup(html_doc, 'html.parser')  # soup is instance of <bs4.BeautifulSoup>
+	#soup.prettify() #整理html排版
 
-#print(result.status_code)
-#print(result.headers)
-#print(result.content)
+	#幣別
+	currencyList = [tag.string.strip() for tag in soup.find_all("div", "visible-phone")]
+	#print(currencyList)
 
-html_doc = result.content
+	#現金匯率
+	rateCashList = [toFloat(tag.string) for tag in soup.find_all("td", "rate-content-cash")]
+	# print(rateCashList)
 
-soup = BeautifulSoup(html_doc, 'html.parser')  # soup is instance of <bs4.BeautifulSoup>
+	#即期匯率
+	rateSightList = [toFloat(tag.string) for tag in soup.find_all("td", "rate-content-sight")]
+	# print(rateSightList)
 
-#soup.prettify() #整理html排版
+	# [0::2] means create subset collection of elements that (index % 2 == 0)
+	#print(list(rateCashList[0::2]))
 
-#幣別
-currencyList = [tag.string.strip() for tag in soup.find_all("div", "visible-phone")]
-#print(currencyList)
+	# zip() -> create tuple
+	#現金匯率 tuple (買入, 賣出)
+	rateCashTuple = list(zip(rateCashList[0::2], rateCashList[1::2]))
 
-#現金匯率
-rateCashList = [toFloat(tag.string) for tag in soup.find_all("td", "rate-content-cash")]
-print(rateCashList)
+	#即期匯率 tuple (買入, 賣出)
+	rateSightTuple = list(zip(rateSightList[0::2], rateSightList[1::2]))
 
-#即期匯率
-rateSightList = [toFloat(tag.string) for tag in soup.find_all("td", "rate-content-sight")]
-print(rateSightList)
+	rateList = list(zip(currencyList, rateCashTuple, rateSightTuple))
 
-# using for HTML5 data-* tag
-# print(soup.find_all(attrs={"data-table": "幣別"}))
+	return rateList
 
-# [0::2] means create subset collection of elements that (index % 2 == 0)
-#print(list(rateCashList[0::2]))
+def display(rateList):
+	for i in rateList:
+		print(i)	
 
-# zip() -> create tuple
-#現金匯率 tuple (買入, 賣出)
-rateCashTuple = list(zip(rateCashList[0::2], rateCashList[1::2]))
 
-#即期匯率 tuple (買入, 賣出)
-rateSightTuple = list(zip(rateSightList[0::2], rateSightList[1::2]))
 
-rateList = list(zip(currencyList, rateCashTuple, rateSightTuple))
 
-for i in rateList:
-	print(i)
+
+
+
+
+
+
+
+
+
+
+
+
