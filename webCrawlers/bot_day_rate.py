@@ -51,6 +51,7 @@ def getTwExRateList():
 	return rateList
 
 def display(rateList):
+	# print(rateList)
 	for i in rateList:
 		print(i)	
 

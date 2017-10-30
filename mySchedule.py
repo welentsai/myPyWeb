@@ -2,6 +2,7 @@ import schedule
 import time
 
 from webCrawlers import bot_day_rate
+from webCrawlers import monitor_air
 
 count = 0
 
@@ -15,8 +16,13 @@ def job_getExRate():
 	rateList = bot_day_rate.getTwExRateList()
 	bot_day_rate.display(rateList)
 
+def job_getPM25():
+	pm25List = monitor_air.getPM25()
+	monitor_air.display(pm25List)
+
 schedule.every(10).seconds.do(job)
 schedule.every(30).seconds.do(job_getExRate)
+schedule.every(20).seconds.do(job_getPM25)
 # schedule.every(1).minutes.do(job)
 # schedule.every().hour.do(job)
 # schedule.every().day.at("10:30").do(job)
@@ -25,4 +31,4 @@ schedule.every(30).seconds.do(job_getExRate)
 
 while True:
 	schedule.run_pending() # Run all jobs that are scheduled to run
-	time.sleep(10) # Suspend execution in seconds
+	time.sleep(1) # Suspend execution in seconds

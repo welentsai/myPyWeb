@@ -8,12 +8,25 @@ import re # regular expression
 import requests 
 from bs4 import BeautifulSoup
 
-# 空氣品質監測JSON
-result = requests.get("https://taqm.epa.gov.tw/taqm/aqs.ashx?lang=tw&act=aqi-epa")
 
-jsonObj = json.loads(result.content)
+def getPM25():
+	# 空氣品質監測JSON
+	result = requests.get("https://taqm.epa.gov.tw/taqm/aqs.ashx?lang=tw&act=aqi-epa")
 
-# python中, json object = dict 
-for row in jsonObj['Data']:
-	print(row['SiteName'], end=' ')
-	print(row['AQI'])
+	jsonObj = json.loads(result.content)
+
+	pm25List = []
+
+	# python中, json object = dict 
+	for row in jsonObj['Data']:
+		# print(row)
+		pm25List.append((row['SiteName'], row['AQI']))
+		# print(row['SiteName'], end=' ')
+		# print(row['AQI'])
+
+	return pm25List
+
+def display(pm25List):
+	print(pm25List)
+	# for row in pm25List:
+	# 	print(row)
