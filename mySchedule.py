@@ -19,6 +19,7 @@ def job():
 
 # 從台銀網站取得每日匯率資料
 def job_getExRate():
+	print('Task!! getExRate()')
 	rateList = bot_day_rate.getTwExRateList()
 	strRateList = [str(rate) for rate in rateList] # convert tuple list to string list
 	newTask = taskDb.TaskRec(Date=datetime.date.today(), Op='exRate', Dur='day', Raw=strRateList)
@@ -40,7 +41,7 @@ def job_getPM25():
 
 if __name__ == "__main__":
 	myConn = mLab_Conn.MyConn() # connect to mLab DB
-	schedule.every(3).seconds.do(job)
+	# schedule.every(5).seconds.do(job_getExRate)
 	schedule.every().day.at("18:00").do(job_getExRate)
 	# schedule.every(2).seconds.do(job_getPM25)
 
