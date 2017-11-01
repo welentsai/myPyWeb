@@ -18,8 +18,9 @@ class TaskRec(Document):
 	Date = DateTimeField(default=datetime.datetime.utcnow)
 	Op = StringField(required=True) # task operation 
 	Dur = StringField(required=True) # task duration [daily, monthly]
+	Status = StringField(required=True)
 	Raw = ListField(StringField(max_length=500)) # Raw Data List
 
 	# print object instance
 	def __str__(self):
-		return str([self.Date, self.Op, self.Dur, self.Raw]) + ' Raw Data Length : ' +str(len(self.Raw))
+		return str([self.Date, self.Op, self.Dur, self.Status, self.Raw]) + ' Raw Data Length : ' +str(len(self.Raw))

@@ -22,7 +22,8 @@ def job_getExRate():
 	print('Task!! getExRate()')
 	rateList = bot_day_rate.getTwExRateList()
 	strRateList = [str(rate) for rate in rateList] # convert tuple list to string list
-	newTask = taskDb.TaskRec(Date=datetime.date.today(), Op='exRate', Dur='day', Raw=strRateList)
+	newTask = taskDb.TaskRec(Date=datetime.date.today(), Op='exRate', Dur='day', Status='new', Raw=strRateList)
+	print(newTask)
 	newTask.save()
 	# bot_day_rate.display(rateList)
 
