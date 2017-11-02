@@ -22,6 +22,7 @@ def job():
 # 從台銀網站取得每日匯率資料
 def job_getExRate():
 	print('Task!! getExRate()')
+	print(datetime.datetime.today())
 	rateList = bot_day_rate.getTwExRateList()
 	strRateList = [str(rate) for rate in rateList] # convert tuple list to string list
 	newTask = taskDb.TaskRec(Date=datetime.datetime.today(), Op='exRate', Dur='day', Status='new', Raw=strRateList)
@@ -31,6 +32,7 @@ def job_getExRate():
 # 取得 台灣各地PM2.5的監測資料
 def job_getPM25():
 	print('Task!! getPM25()')
+	print(datetime.datetime.today())
 	pm25List = monitor_air.getPM25()
 	strPm25List = [str(pm25) for pm25 in pm25List] # convert tuple list to string list
 	newTask = taskDb.TaskRec(Date=datetime.datetime.today(), Op='pm25', Dur='day', Status='new', Raw=strPm25List)
@@ -39,6 +41,7 @@ def job_getPM25():
 # 更新每日SP500交易資料
 def job_updateSP500Tradings():
 	print('Task!! updateSP500Tradings()')
+	print(datetime.datetime.today())
 	lastDt = sp500Db.SP500.objects.order_by('-Date').first().Date # 取得最後一筆交易資料
 	# lastDt = '2017-10-25'
 	year = datetime.datetime.today().year # 今年
