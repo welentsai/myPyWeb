@@ -15,9 +15,9 @@ uri_2 = "https://finance.google.com/finance/historical?cid=626307&startdate=Jan+
 uri = "https://finance.google.com/finance/historical?cid=626307&startdate=Jan+1%2C+";
 
 # 組成&回傳 URL
-def uriComposer(year, startNo):
+def uriComposer(year, startNo, num='200'):
 	uri = "https://finance.google.com/finance/historical?cid=626307&startdate=Jan+1%2C+";
-	return uri + year + "&enddate=Dec+31%2C+" + year + "&num=200" + "&start=" + startNo;	
+	return uri + year + "&enddate=Dec+31%2C+" + year + "&num=" + num + "&start=" + startNo;	
 
 # 把數字裡的逗號清掉
 # 把數字裡的'-'換成 '-1' => 沒有交易資料
@@ -49,7 +49,7 @@ def getDataFrame(url):
 	table = soup.find("table", "historical_price")
 	df = pd.read_html(str(table))[0] # 1. convert BeautifulSoup object into a String , 2. get first table
 	df.columns = list(df.iloc[0]) # rename column from first row
-	return df.drop([0]) # drop first row, it is ccolumn name
+	return df.drop([0]) # drop first row, coz it is ccolumn name
 
 # 抓取 S&P500 某一年份 的交易資料
 # 用 pandas 存放 table
@@ -70,6 +70,19 @@ def getData(year):
 	df['Close'] = pd.to_numeric(df.Close, errors='coerce')
 	df['Volume'] = pd.to_numeric(df.Volume, downcast='integer', errors='coerce')
 
+	return df # re-index
+
+def getData(year, number):
+	# 讀取前30筆
+	uri = uriComposer(year, '0', str(number))
+	df = getDataFrame(uri)
+	# data 資料格式整理
+	df['Date'] = pd.to_datetime(df.Date, format="%b %d, %Y")
+	df['Open'] = pd.to_numeric(df.Open, errors='coerce') # invalid parsing will be set as NaN
+	df['High'] = pd.to_numeric(df.High, errors='coerce')
+	df['Low'] = pd.to_numeric(df.Low, errors='coerce')
+	df['Close'] = pd.to_numeric(df.Close, errors='coerce')
+	df['Volume'] = pd.to_numeric(df.Volume, downcast='integer', errors='coerce')
 	return df # re-index
 
 # main entry 

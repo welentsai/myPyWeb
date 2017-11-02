@@ -20,6 +20,9 @@ class SP500(Document):
 	Close = FloatField()
 	Volume = IntField()
 
+	def __str__(self):
+		return str([self.Date, self.Open, self.High, self.Low, self.Close, self.Volume])
+
 # main program entry
 if __name__ == "__main__":
 	myConn = mLab_Conn.MyConn()
