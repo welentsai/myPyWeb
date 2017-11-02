@@ -9,7 +9,7 @@ from webCrawlers import monitor_air
 from webCrawlers import sp500Spider
 from mDbLib import mLab_Conn
 from mDbLib import taskDb
-from mDbLib import sp500Db
+from mDbLib import sp500db
 
 count = 0
 
