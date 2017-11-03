@@ -9,7 +9,7 @@ from webCrawlers import monitor_air
 from webCrawlers import sp500Spider
 from mDbLib import mLab_Conn
 from mDbLib import taskDb
-from mDbLib import sp500db
+from mDbLib import sp500Db
 
 count = 0
 
@@ -76,7 +76,7 @@ def job_updateSP500Tradings():
 
 if __name__ == "__main__":
 	myConn = mLab_Conn.MyConn() # connect to mLab DB
-	# schedule.every(5).seconds.do(job_getPM25)
+	# schedule.every(5).seconds.do(job_updateSP500Tradings)
 	schedule.every().day.at("18:00").do(job_getExRate) 
 	schedule.every().day.at("10:00").do(job_updateSP500Tradings)
 
