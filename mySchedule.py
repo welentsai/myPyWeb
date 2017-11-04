@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # from system library
 import datetime
 import schedule
@@ -7,9 +9,11 @@ import time
 from webCrawlers import bot_day_rate
 from webCrawlers import monitor_air
 from webCrawlers import sp500Spider
+from webCrawlers import tw0050Spider
 from mDbLib import mLab_Conn
 from mDbLib import taskDb
 from mDbLib import sp500Db
+from mDbLib import tw0050Db
 
 count = 0
 
@@ -64,6 +68,35 @@ def job_updateSP500Tradings():
 		sp500Db.SP500.objects.insert(tradings)
 	else:
 		print('No New SP500 Trading Data !!')
+
+# 更新每日SP500交易資料
+def job_updateTW0050Tradings():
+	print('Task!! updateTW0050Tradings()')
+	today = datetime.datetime.today()
+	df = tw0050Spider.getData(today.year, today.month, '0050') # 當月交易資料
+	df = df.set_index(['Date'])
+	lastDt = tw0050Db.Tw0050.objects.order_by('-Date').first().Date # 取得DB最後一筆交易資料
+	# lastDt = '2017-11-01'
+	print('last record date in db => ' + str(lastDt))
+	# print(df)
+	df = df.loc[lastDt:] # get the rest data from last date
+	df =  df.drop(df.index[0]) # drop first row (already in db)
+	df = df.reset_index() # reset to auto index
+	# print(df)
+	if(len(df)):
+			# print('new tradings')
+			tradings = []
+			for idx, row in df.iterrows():
+				# create new Tw0050 document
+				trading = tw0050Db.Tw0050(Date=row.Date, Open=row.Open, High=row.High, Low=row.Low,
+																	Close=row.Close, Volume=row.Volume, Turnover=row.Turnover)
+				# print(trading)
+				tradings.append(trading)
+			print("New tradings count : " + str(len(tradings)))
+			print(tradings)
+			tw0050Db.Tw0050.objects.insert(tradings)
+	else:
+		print('No New Data !!')
 	
 # schedule.every(60).seconds.do(job)
 # schedule.every(30).minutes.do(job_getExRate)
@@ -76,8 +109,9 @@ def job_updateSP500Tradings():
 
 if __name__ == "__main__":
 	myConn = mLab_Conn.MyConn() # connect to mLab DB
-	# schedule.every(5).seconds.do(job_updateSP500Tradings)
+	# schedule.every(5).seconds.do(job_updateTW0050Tradings)
 	schedule.every().day.at("18:00").do(job_getExRate) 
+	schedule.every().day.at("18:30").do(job_updateTW0050Tradings)
 	schedule.every().day.at("10:00").do(job_updateSP500Tradings)
 
 	while True:
