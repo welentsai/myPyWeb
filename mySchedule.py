@@ -10,10 +10,12 @@ from webCrawlers import bot_day_rate
 from webCrawlers import monitor_air
 from webCrawlers import sp500Spider
 from webCrawlers import tw0050Spider
+from webCrawlers import tw0050Holdings_Spider
 from mDbLib import mLab_Conn
 from mDbLib import taskDb
 from mDbLib import sp500Db
 from mDbLib import tw0050Db
+from mDbLib import tw0050Holdings_Db
 
 count = 0
 
@@ -97,6 +99,40 @@ def job_updateTW0050Tradings():
 			tw0050Db.Tw0050.objects.insert(tradings)
 	else:
 		print('No New Data !!')
+
+def job_updateTW0050Holdings():
+	print('Task!! job_updateTW0050Holdings()')
+
+	lastYr = tw0050Holdings_Db.Tw0050Holding.objects.order_by('-Year').first().Year # 取得最後一筆交易年份
+	lastQtr = tw0050Holdings_Db.Tw0050Holding.objects(Year=lastYr).order_by('-Quarter').first().Quarter # 取得最後一筆交易季度
+	lastDTuple = (int(lastYr), int(lastQtr))
+
+	today = datetime.date.today()
+	prev_quarter_map = ((1, 0), (2, 0), (3, 0), (4, 0))
+	quarter, yd = prev_quarter_map[(today.month - 1) // 3] # 整數除法, 以[0~11] map to [0~3]的結果
+	todayTuple = (today.year + yd, quarter)
+
+	if todayTuple > lastDTuple: # 新季度
+		print('Neq Quarter !!  Try to update if data is ready ...')
+		df = tw0050Holdings_Spider.getData(todayTuple[0], todayTuple[1])
+		if df == None:
+			print('None Data !!')
+			return None # early Return
+		if(len(df)):
+			# print('new tradings')
+			holdings = []
+			for idx, row in df.iterrows():
+				# create new Tw0050 holding document
+				holding = tw0050Holdings_Db.Tw0050Holding(Year=row.Year, Quarter=row.Quarter, Code=row.Code, Name=row.Name, Ratio=row.Ratio)
+				# print(holding)
+				holdings.append(holding)
+			print("New Holdings count : " + str(len(holdings)))
+			tw0050Holdings_Db.Tw0050Holding.objects.insert(holdings)
+		else:
+			print('No New Data !!')
+	else:
+		print("Not a New Quarter !!")
+
 	
 # schedule.every(60).seconds.do(job)
 # schedule.every(30).minutes.do(job_getExRate)
@@ -109,11 +145,12 @@ def job_updateTW0050Tradings():
 
 if __name__ == "__main__":
 	myConn = mLab_Conn.MyConn() # connect to mLab DB
-	# schedule.every(5).seconds.do(job_updateSP500Tradings)
+	# schedule.every(5).seconds.do(job_updateTW0050Holdings)
 	schedule.every().day.at("18:00").do(job_getExRate) 
 	schedule.every().day.at("18:30").do(job_updateTW0050Tradings)
-	schedule.every().day.at("10:00").do(job_updateSP500Tradings)
+	schedule.every().day.at("10:00").do(job_updateSP500Tradings) 
+	schedule.every(30).days.at("19:00").do(job_updateTW0050Holdings) # once in 30 days
 
 	while True:
 		schedule.run_pending() # Run all jobs that are scheduled to run
-		time.sleep(1) # Suspend execution in seconds
+		time.sleep(60) # Suspend execution in seconds
