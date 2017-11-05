@@ -109,7 +109,7 @@ def job_updateTW0050Tradings():
 
 if __name__ == "__main__":
 	myConn = mLab_Conn.MyConn() # connect to mLab DB
-	# schedule.every(5).seconds.do(job_updateTW0050Tradings)
+	# schedule.every(5).seconds.do(job_updateSP500Tradings)
 	schedule.every().day.at("18:00").do(job_getExRate) 
 	schedule.every().day.at("18:30").do(job_updateTW0050Tradings)
 	schedule.every().day.at("10:00").do(job_updateSP500Tradings)
