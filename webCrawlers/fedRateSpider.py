@@ -4,6 +4,7 @@
 # Note : EFFR for "effective federal funds rate"
 
 import os
+import re
 import requests 
 import datetime
 import time
@@ -11,6 +12,12 @@ import pandas as pd
 import numpy as np
 from bs4 import Tag
 from bs4 import BeautifulSoup
+
+# 清除日期字串中的其他字元
+def cleanDate(dateStr):
+	regex = re.compile('[a-zA-Z]')
+	#First parameter is the replacement, second parameter is your input string
+	return regex.sub('', dateStr) # remove alphabet from date string
 
 def getData(startDate, endDate):
 	url = 'https://apps.newyorkfed.org/markets/autorates/fed-funds-search-result-page'
@@ -33,12 +40,18 @@ def getData(startDate, endDate):
 	df.columns = list(df.iloc[0]) # rename column from row[0]
 	df = df.drop([0,1]) # drop row[0] and row[1]
 	df = df.reset_index(drop=True) # drop = true => not insert index column, using default auto-index
-
-	print(df)
+	df.columns = ['Date', 'Rate'] # 設定Column名稱
+	df['Date'] = df['Date'].map(cleanDate) # 整理資料格式
+	df['Date'] = pd.to_datetime(df.Date, format="%m/%d/%Y")
+	df['Rate'] = pd.to_numeric(df.Rate, errors='coerce') # invalid parsing will be set as NaN
+	return df
 
 def getDataFromCSV(file):
 	df = pd.read_csv(file)
-	print(df)
+	df.columns = ['Date', 'Rate'] # 設定Column名稱
+	df['Date'] = pd.to_datetime(df.Date, format="%Y-%m-%d")
+	df['Rate'] = pd.to_numeric(df.Rate, errors='coerce') # invalid parsing will be set as NaN
+	return df
 
 
 # main program entry
@@ -52,4 +65,4 @@ if __name__ == "__main__":
 	getDataFromCSV(abs_file_path)
 
 	# fetch fund rate from NYFed
-	getData('01/01/2017', '12/31/2017')
+	getData('01/01/2017', '01/31/2017')

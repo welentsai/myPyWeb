@@ -11,11 +11,13 @@ from webCrawlers import monitor_air
 from webCrawlers import sp500Spider
 from webCrawlers import tw0050Spider
 from webCrawlers import tw0050Holdings_Spider
+from webCrawlers import fedRateSpider
 from mDbLib import mLab_Conn
 from mDbLib import taskDb
 from mDbLib import sp500Db
 from mDbLib import tw0050Db
 from mDbLib import tw0050Holdings_Db
+from mDbLib import fedEFFR_Db
 
 count = 0
 
@@ -71,7 +73,7 @@ def job_updateSP500Tradings():
 	else:
 		print('No New SP500 Trading Data !!')
 
-# 更新每日SP500交易資料
+# 更新每日TW50交易資料
 def job_updateTW0050Tradings():
 	print('Task!! updateTW0050Tradings()')
 	today = datetime.datetime.today()
@@ -100,6 +102,7 @@ def job_updateTW0050Tradings():
 	else:
 		print('No New Data !!')
 
+# 更新每季TW50持股資訊
 def job_updateTW0050Holdings():
 	print('Task!! job_updateTW0050Holdings()')
 
@@ -133,6 +136,25 @@ def job_updateTW0050Holdings():
 	else:
 		print("Not a New Quarter !!")
 
+# 更新每日Fed Fund Rate資訊
+def job_updateFedRates():
+	print('Task!! job_updateFedRates()')
+	startDate = fedEFFR_Db.FedRate.objects.order_by('-Date').first().Date # 取得最後一筆資料的日期
+	endDate = datetime.date.today()
+	print(startDate)
+	print(endDate)
+	df = fedRateSpider.getData(startDate, endDate)
+	df =  df.drop(df.index[len(df)-1]) # drop last row, startDate, (already in db)
+	if(len(df)):
+		rates = []
+		for idx, row in df.iterrows():
+			rate = fedEFFR_Db.FedRate(Date=row.Date, Rate=row.Rate)
+			rates.append(rate)
+		print("New rates count : " + str(len(rates)))
+		# print(rates)
+		fedEFFR_Db.FedRate.objects.insert(rates)
+	else:
+		print('No New Data !!')
 	
 # schedule.every(60).seconds.do(job)
 # schedule.every(30).minutes.do(job_getExRate)
@@ -145,10 +167,11 @@ def job_updateTW0050Holdings():
 
 if __name__ == "__main__":
 	myConn = mLab_Conn.MyConn() # connect to mLab DB
-	# schedule.every(5).seconds.do(job_updateTW0050Holdings)
-	schedule.every().day.at("18:00").do(job_getExRate) 
-	schedule.every().day.at("18:30").do(job_updateTW0050Tradings)
-	schedule.every().day.at("10:00").do(job_updateSP500Tradings) 
+	# schedule.every(5).seconds.do(job_updateFedRates)
+	schedule.every().day.at("18:00").do(job_getExRate) # 台幣匯率
+	schedule.every().day.at("18:30").do(job_updateTW0050Tradings) # TW0050
+	schedule.every().day.at("10:00").do(job_updateSP500Tradings) # SP500
+	schedule.every().day.at("10:10").do(job_updateFedRates)  # Fed Rate
 	schedule.every(30).days.at("19:00").do(job_updateTW0050Holdings) # once in 30 days
 
 	while True:
